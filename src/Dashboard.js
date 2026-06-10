@@ -43,6 +43,35 @@ function Dashboard() {
     const [editBudget, setEditBudget] = useState(0.10);
 
     // 1. Open Tenders & Master Tables Fetch Logic (Fixed Blank Screen Errors)
+    // useEffect(() => {
+    //     const fetchData = async () => {
+    //         try {
+    //             const res = await axios.get('https://cityscape-api-production.up.railway.app/api/projects/all');
+                
+    //             if (userRole === 'PUBLIC') {
+    //                 // Fallback configuration: If no tenders are 'FINISHED', display open tenders so it's never empty
+    //                 const finished = res.data.filter(t => t.status === 'FINISHED');
+    //                 setTenders(finished.length > 0 ? finished : res.data.filter(t => t.status === 'Tender Open'));
+    //             } else {
+    //                 setTenders(res.data);
+    //             }
+                
+    //             if (userRole === 'ADMIN') {
+    //                 const bidRes = await axios.get('https://cityscape-api-production.up.railway.app/api/bids/all');
+    //                 setBids(bidRes.data);
+    //             }
+
+    //             if (userRole === 'CONTRACTOR' || user?.role?.toUpperCase() === 'CONTRACTOR') {
+    //                 const conBidRes = await axios.get('https://cityscape-api-production.up.railway.app/api/bids/all');
+    //                 setContractorBids(conBidRes.data.filter(b => b.contractorName === user.username));
+    //             }
+    //         } catch (err) { console.error("Fetch error!", err); }
+    //     };
+    //     fetchData();
+    //     // eslint-disable-next-line react-hooks/exhaustive-deps
+    // }, [userRole, user?.username]);
+
+    // 1. Open Tenders & Master Tables Fetch Logic (Fixed Contractor Filter)
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -52,7 +81,14 @@ function Dashboard() {
                     // Fallback configuration: If no tenders are 'FINISHED', display open tenders so it's never empty
                     const finished = res.data.filter(t => t.status === 'FINISHED');
                     setTenders(finished.length > 0 ? finished : res.data.filter(t => t.status === 'Tender Open'));
-                } else {
+                } 
+                else if (userRole === 'CONTRACTOR') {
+                    // FILTER: Contractors should only see active public tenders open for bidding
+                    const openTenders = res.data.filter(t => t.status === 'Tender Open');
+                    setTenders(openTenders);
+                } 
+                else {
+                    // Admins see all logs
                     setTenders(res.data);
                 }
                 
@@ -61,7 +97,7 @@ function Dashboard() {
                     setBids(bidRes.data);
                 }
 
-                if (userRole === 'CONTRACTOR' || user?.role?.toUpperCase() === 'CONTRACTOR') {
+                if (userRole === 'CONTRACTOR') {
                     const conBidRes = await axios.get('https://cityscape-api-production.up.railway.app/api/bids/all');
                     setContractorBids(conBidRes.data.filter(b => b.contractorName === user.username));
                 }

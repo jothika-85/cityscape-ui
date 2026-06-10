@@ -72,6 +72,7 @@ function Dashboard() {
     // }, [userRole, user?.username]);
 
     // 1. Open Tenders & Master Tables Fetch Logic (Fixed Contractor Filter)
+   // 1. Open Tenders & Master Tables Fetch Logic (Fixed Contractor Overlap)
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -83,12 +84,12 @@ function Dashboard() {
                     setTenders(finished.length > 0 ? finished : res.data.filter(t => t.status === 'Tender Open'));
                 } 
                 else if (userRole === 'CONTRACTOR') {
-                    // FILTER: Contractors should only see active public tenders open for bidding
+                    // FIX: Contractors should ONLY see tenders that are open for bidding under the main tab!
                     const openTenders = res.data.filter(t => t.status === 'Tender Open');
                     setTenders(openTenders);
                 } 
                 else {
-                    // Admins see all logs
+                    // Admins see everything unfiltered
                     setTenders(res.data);
                 }
                 

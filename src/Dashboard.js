@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 function Dashboard() {
-    // --- SAFE FALLBACK: Universal Role Evaluator ---
+    
     const loggedInUser = JSON.parse(localStorage.getItem("user")) || { username: "Guest_User", role: "PUBLIC" };
     
-    // Auto-force matching if storage variables are corrupted
+    
     if (loggedInUser.username && loggedInUser.username.toLowerCase() === "admin") {
         loggedInUser.role = "ADMIN";
     }
@@ -46,7 +46,7 @@ function Dashboard() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const res = await axios.get('http://localhost:8080/api/projects/all');
+                const res = await axios.get('https://cityscape-api-production.up.railway.app/api/projects/all');
                 
                 if (userRole === 'PUBLIC') {
                     // Fallback configuration: If no tenders are 'FINISHED', display open tenders so it's never empty
@@ -57,12 +57,12 @@ function Dashboard() {
                 }
                 
                 if (userRole === 'ADMIN') {
-                    const bidRes = await axios.get('http://localhost:8080/api/bids/all');
+                    const bidRes = await axios.get('https://cityscape-api-production.up.railway.app/api/bids/all');
                     setBids(bidRes.data);
                 }
 
                 if (userRole === 'CONTRACTOR' || user?.role?.toUpperCase() === 'CONTRACTOR') {
-                    const conBidRes = await axios.get('http://localhost:8080/api/bids/all');
+                    const conBidRes = await axios.get('https://cityscape-api-production.up.railway.app/api/bids/all');
                     setContractorBids(conBidRes.data.filter(b => b.contractorName === user.username));
                 }
             } catch (err) { console.error("Fetch error!", err); }
@@ -78,8 +78,8 @@ function Dashboard() {
             const fetchChat = async () => {
                 try {
                     const endpoint = (userRole === 'ADMIN') 
-                        ? `http://localhost:8080/api/chat/history?user1=Admin&user2=${targetUser}`
-                        : `http://localhost:8080/api/chat/history?user1=Admin&user2=${user.username}`;
+                        ? `https://cityscape-api-production.up.railway.app/api/chat/history?user1=Admin&user2=${targetUser}`
+                        : `https://cityscape-api-production.up.railway.app/api/chat/history?user1=Admin&user2=${user.username}`;
                     const res = await axios.get(endpoint);
                     setChatMessages(res.data);
                 } catch (err) { console.error(err); }
@@ -104,11 +104,11 @@ function Dashboard() {
                 bidAmount: parseFloat(amount),
                 status: "Applied"
             };
-            await axios.post('http://localhost:8080/api/bids/apply', newBid);
+            await axios.post('https://cityscape-api-production.up.railway.app/api/bids/apply', newBid);
             alert(`Bid of ${amount} Cr placed successfully for ${projectId}! 🚀`);
             setBidAmounts({ ...bidAmounts, [projectId]: 0 });
             
-            const conBidRes = await axios.get('http://localhost:8080/api/bids/all');
+            const conBidRes = await axios.get('https://cityscape-api-production.up.railway.app/api/bids/all');
             setContractorBids(conBidRes.data.filter(b => b.contractorName === user.username));
         } catch (err) { alert("Bid placement failed!"); }
     };
@@ -119,7 +119,7 @@ function Dashboard() {
         try {
             const targetReceiver = (userRole === 'ADMIN') ? selectedContact : "Admin";
             const newMsg = { sender: user.username, receiver: targetReceiver, content: msgInput };
-            await axios.post('http://localhost:8080/api/chat/send', newMsg);
+            await axios.post('https://cityscape-api-production.up.railway.app/api/chat/send', newMsg);
             setMsgInput('');
         } catch (err) { console.error(err); }
     };
@@ -132,16 +132,40 @@ function Dashboard() {
     };
 
     // Admin Process Functions
+    // const handlePublish = async () => {
+    //     try {
+    //         const generatedProjectId = `PRJ-${Math.floor(100 + Math.random() * 900)}`;
+    //         await axios.post('https://cityscape-api-production.up.railway.app/api/projects/create', { 
+    //             projectId: generatedProjectId, title, description, budgetCr: parseFloat(budget), status: "Tender Open" 
+    //         });
+    //         alert("Tender Published! ✅");
+    //         window.location.reload(); 
+    //     } catch (err) { console.error(err); }
+    // };
     const handlePublish = async () => {
-        try {
-            const generatedProjectId = `PRJ-${Math.floor(100 + Math.random() * 900)}`;
-            await axios.post('http://localhost:8080/api/projects/create', { 
-                projectId: generatedProjectId, title, description, budgetCr: parseFloat(budget), status: "Tender Open" 
-            });
-            alert("Tender Published! ✅");
-            window.location.reload(); 
-        } catch (err) { console.error(err); }
-    };
+    if (!title.trim() || !description.trim()) {
+        return alert("Please fill out Title and Description fields first!");
+    }
+    try {
+        const generatedProjectId = `PRJ-${Math.floor(100 + Math.random() * 900)}`;
+        
+        console.log("Sending payload:", { projectId: generatedProjectId, title, description, budgetCr: parseFloat(budget), status: "Tender Open" });
+
+        await axios.post('https://cityscape-api-production.up.railway.app/api/projects/create', { 
+            projectId: generatedProjectId, 
+            title: title, 
+            description: description, 
+            budgetCr: parseFloat(budget), 
+            status: "Tender Open" 
+        });
+        
+        alert("Tender Published! ✅");
+        window.location.reload(); 
+    } catch (err) { 
+        console.error("Publish Error Details:", err);
+        alert(`Failed to Publish Tender!\nError: ${err.message}\nCheck browser console or Railway server log data.`);
+    }
+};
 
     const handleSelectForEdit = (projId) => {
         setEditingProjectId(projId);
@@ -155,7 +179,7 @@ function Dashboard() {
     const handleUpdateTender = async () => {
         if (!editingProjectId) return alert("Select a tender first!");
         try {
-            await axios.put(`http://localhost:8080/api/projects/update/${editingProjectId}?title=${editTitle}&budgetCr=${editBudget}`);
+            await axios.put(`https://cityscape-api-production.up.railway.app/api/projects/update/${editingProjectId}?title=${editTitle}&budgetCr=${editBudget}`);
             alert("Tender Updated! 💾");
             window.location.reload();
         } catch (err) { alert("Update Failed!"); }
@@ -165,7 +189,7 @@ function Dashboard() {
         if (!editingProjectId) return alert("Select a tender first!");
         if(window.confirm(`Are you sure you want to DELETE ${editingProjectId}?`)) {
             try {
-                await axios.delete(`http://localhost:8080/api/projects/delete/${editingProjectId}`);
+                await axios.delete(`https://cityscape-api-production.up.railway.app/api/projects/delete/${editingProjectId}`);
                 alert("Tender Deleted! 🗑️");
                 window.location.reload();
             } catch (err) { alert("Delete Failed!"); }
@@ -204,7 +228,7 @@ function Dashboard() {
     const handleTransferContract = async () => {
         if (!selectedProjectId || !newContractorName) return alert("Select fields!");
         try {
-            await axios.put(`http://localhost:8080/api/projects/transfer/${selectedProjectId}?contractorName=${newContractorName}`);
+            await axios.put(`https://cityscape-api-production.up.railway.app/api/projects/transfer/${selectedProjectId}?contractorName=${newContractorName}`);
             alert(`Contract transferred! 🤝`);
             window.location.reload();
         } catch (err) { alert("Transfer Failed!"); }

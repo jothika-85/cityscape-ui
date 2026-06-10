@@ -9,7 +9,7 @@ function Register() {
         companyName: '',
         mobile: '',
         aadhaar: '',
-        role: 'CONTRACTOR' // Contractor role fix panniyachu
+        role: 'CONTRACTOR' 
     });
 
     const navigate = useNavigate();
@@ -21,11 +21,11 @@ function Register() {
     const handleRegister = async (e) => {
         e.preventDefault();
         try {
-            // Backend endpoint correct-ah check pannikonga
+            
             const response = await axios.post('http://localhost:8080/api/auth/register', formData);
             if (response.status === 200 || response.status === 201) {
                 alert("Registration Successful! Welcome " + formData.username);
-                navigate('/'); // Success aana direct-ah login-ku pōgum
+                navigate('/'); 
             }
         } catch (error) {
             console.error("Error during registration:", error);
@@ -38,11 +38,11 @@ function Register() {
             <h2 style={{ color: '#002147' }}>Contractor KYC Registration</h2>
             
             <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                {/* 1. Login Details */}
+                
                 <input type="text" name="username" placeholder="Username" onChange={handleChange} required style={inputStyle} />
                 <input type="password" name="password" placeholder="Password" onChange={handleChange} required style={inputStyle} />
                 
-                {/* 2. KYC Details (Neenga kettathu) */}
+                
                 <input type="text" name="companyName" placeholder="Company Name" onChange={handleChange} required style={inputStyle} />
                 <input type="text" name="mobile" placeholder="Mobile (10 Digits)" maxLength="10" onChange={handleChange} required style={inputStyle} />
                 <input type="text" name="aadhaar" placeholder="Aadhaar (12 Digits)" maxLength="12" onChange={handleChange} required style={inputStyle} />
@@ -53,7 +53,7 @@ function Register() {
     );
 }
 
-// Simple CSS inside JS
+
 const inputStyle = { padding: '12px', borderRadius: '5px', border: '1px solid #ccc', fontSize: '16px' };
 const btnStyle = { background: '#002147', color: 'white', padding: '12px', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' };
 

@@ -22,7 +22,7 @@ function Register() {
         e.preventDefault();
         try {
             
-            const response = await axios.post('http://localhost:8080/api/auth/register', formData);
+            const response = await axios.post('https://cityscape-api-production.up.railway.app/api/projects/all', formData);
             if (response.status === 200 || response.status === 201) {
                 alert("Registration Successful! Welcome " + formData.username);
                 navigate('/'); 

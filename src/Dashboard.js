@@ -233,31 +233,57 @@ function Dashboard() {
         }
     };
 
-    // --- BYPASS FIX: Simulating a successful database approval ---
+    // // --- BYPASS FIX: Simulating a successful database approval ---
+    // const handleApprove = async (bidId) => {
+    //     try {
+    //         // Find the bid being approved from our local state array
+    //         const selectedBid = bids.find(b => b.id === bidId);
+            
+    //         if (!selectedBid) {
+    //             return alert("Bid instance missing from active evaluation grid!");
+    //         }
+
+    //         // Custom alert box showing it's processing for your final year demo
+    //         alert(`System synchronized! Processing approval for:\nProject ID: ${selectedBid.projectId}\nContractor: ${selectedBid.contractorName} 🎉`);
+            
+    //         // Step 1: Simulate update by removing the entry locally or setting state
+    //         setBids(prevBids => prevBids.filter(b => b.id !== bidId));
+            
+    //         // Step 2: Show success popup
+    //         alert("Bid Approved Successfully! 🏛️\nProject shifted to active development ledger.");
+            
+    //         // Refresh screen to clear arrays nicely
+    //         window.location.reload();
+            
+    //     } catch (err) {
+    //         console.error(err);
+    //         alert("Approval Process Failed!");
+    //     }
+    // };
+
+    // --- FIXED: Actual Database Sync for Bid Approval ---
     const handleApprove = async (bidId) => {
         try {
-            // Find the bid being approved from our local state array
+            // 1. Find the selected bid instance
             const selectedBid = bids.find(b => b.id === bidId);
             
             if (!selectedBid) {
                 return alert("Bid instance missing from active evaluation grid!");
             }
 
-            // Custom alert box showing it's processing for your final year demo
-            alert(`System synchronized! Processing approval for:\nProject ID: ${selectedBid.projectId}\nContractor: ${selectedBid.contractorName} 🎉`);
+            // 2. Make an API Call to update the project status and assign the contractor in the database
+            // Note: Adjust the endpoint path if your Spring Boot backend uses a different mapping for approval
+            await axios.put(`https://cityscape-api-production.up.railway.app/api/projects/update/${selectedBid.projectId}?status=Approved&assignedContractor=${selectedBid.contractorName}`);
             
-            // Step 1: Simulate update by removing the entry locally or setting state
+            alert(`System synchronized! Approved successfully for:\nProject ID: ${selectedBid.projectId}\nContractor: ${selectedBid.contractorName} 🎉`);
+            
+            // 3. Update the local view states nicely
             setBids(prevBids => prevBids.filter(b => b.id !== bidId));
-            
-            // Step 2: Show success popup
-            alert("Bid Approved Successfully! 🏛️\nProject shifted to active development ledger.");
-            
-            // Refresh screen to clear arrays nicely
             window.location.reload();
             
         } catch (err) {
-            console.error(err);
-            alert("Approval Process Failed!");
+            console.error("Approval Process Error:", err);
+            alert(`Approval Process Failed!\nError: ${err.message}\nMake sure your backend update endpoint accepts status and contractor mapping parameters.`);
         }
     };
     
